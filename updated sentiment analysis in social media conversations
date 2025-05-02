@@ -1,0 +1,43 @@
+!pip install pandas matplotlib seaborn vaderSentiment
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from google.colab import files
+uploaded = files.upload()
+import zipfile
+import os
+with zipfile.ZipFile("archive.zip", 'r') as zip_ref:
+    zip_ref.extractall("dataset_folder")
+
+os.listdir("dataset_folder")
+df = pd.read_csv("dataset_folder/sentimentdataset.csv")
+df.head()
+pd.read_csv("dataset_folder/sentimentdataset.csv")
+df.isnull().sum()
+df = df.dropna(subset=['Text'])
+analyzer = SentimentIntensityAnalyzer()
+
+def get_sentiment(text):
+    score = analyzer.polarity_scores(text)['compound']
+    if score >= 0.05:
+        return 'Positive'
+    elif score <= -0.05:
+        return 'Negative'
+    else:
+        return 'Neutral'
+
+df['Predicted_Sentiment'] = df['Text'].apply(get_sentiment)
+
+df[['Text', 'Predicted_Sentiment']].head()
+sns.set(style='whitegrid')
+
+plt.figure(figsize=(8, 5))
+sns.countplot(x='Predicted_Sentiment', data=df, palette='pastel')
+plt.title('Predicted Sentiment Distribution')
+plt.xlabel('Sentiment')
+plt.ylabel('Number of Posts')
+plt.show()
+from sklearn.metrics import classification_report
+
+print(classification_report(df['Sentiment'], df['Predicted_Sentiment']))
